@@ -98,7 +98,13 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("insufficientInput", (roomId) => {});
+  socket.on("gameOver", (roomId) => {
+    delete rooms[roomId];
+  });
+
+  socket.on("disconnect", () => {
+    console.log("disconnected");
+  });
 });
 
 io.listen(3000, () => {
