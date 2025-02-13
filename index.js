@@ -1,11 +1,22 @@
 const { Server } = require("socket.io");
 const { v4: uuidv4 } = require("uuid");
 const _ = require("lodash");
-const io = new Server({
-  cors: {
-    origin: "*",
+const io = new Server(
+  {
+    cors: {
+      origin: "*",
+    },
   },
-});
+  {
+    addTrailingSlash: false, // Important for connection recovery
+    connectionStateRecovery: {
+      // the backup duration of the sessions and the packets
+      maxDisconnectionDuration: 2 * 60 * 1000,
+      // whether to skip middlewares upon successful recovery
+      skipMiddlewares: true,
+    },
+  }
+);
 
 const Room = class {
   noOfPlayers = 0;
@@ -99,11 +110,34 @@ io.on("connection", (socket) => {
   });
 
   socket.on("gameOver", (roomId) => {
+    console.log(rooms, roomId);
     delete rooms[roomId];
+    console.log("After delete", roomId, rooms);
   });
 
   socket.on("disconnect", () => {
     console.log("disconnected");
+    let roomId;
+    for (const room in rooms) {
+      rooms[room]?.playerInfo?.forEach((player) => {
+        if (player.playerId === socket.id) {
+          roomId = player.roomId;
+        }
+      });
+    }
+    const opponentId = rooms[roomId]?.playerInfo.filter(
+      (player) => player.playerId !== socket.id
+    )[0]?.playerId;
+    console.log(roomId, opponentId, socket.id);
+    socket.to(opponentId).emit("opponentDisconnected");
+  });
+
+  socket.on("reconnected", (roomId) => {
+    rooms[roomId]?.playerInfo.forEach((player) => {
+      if (player.playerId !== socket.id) {
+        socket.to(player.playerId).emit("opponentReconnected");
+      }
+    });
   });
 });
 
