@@ -1,12 +1,16 @@
 const { Server } = require("socket.io");
 const { v4: uuidv4 } = require("uuid");
 const _ = require("lodash");
-const io = new Server(3000, {
+const io = new Server({
   cors: {
     origin: "*",
   },
+
+  addTrailingSlash: false, // Important for connection recovery
   connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes recovery window
+    // the backup duration of the sessions and the packets
+    maxDisconnectionDuration: 2 * 60 * 1000,
+    // whether to skip middlewares upon successful recovery
     skipMiddlewares: true,
   },
 });
