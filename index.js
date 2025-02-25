@@ -46,6 +46,9 @@ function createRoom(id, userName) {
 const rooms = {};
 
 io.on("connection", (socket) => {
+  if (socket.recovered) {
+    console.log("recovered", socket.id);
+  }
   socket.on("join", (userName) => {
     console.log("join request");
     if (_.isEmpty(rooms)) {
