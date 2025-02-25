@@ -116,7 +116,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("disconnected");
+    console.log("disconnected", socket.id);
     let roomId;
     for (const room in rooms) {
       rooms[room]?.playerInfo?.forEach((player) => {
@@ -132,12 +132,13 @@ io.on("connection", (socket) => {
     socket.to(opponentId).emit("opponentDisconnected");
   });
 
-  socket.on("reconnected", (roomId) => {
-    rooms[roomId]?.playerInfo.forEach((player) => {
-      if (player.playerId !== socket.id) {
-        socket.to(player.playerId).emit("opponentReconnected");
-      }
-    });
+  socket.on("reconnect", () => {
+    // rooms[roomId]?.playerInfo.forEach((player) => {
+    //   if (player.playerId !== socket.id) {
+    //     socket.to(player.playerId).emit("opponentReconnected");
+    //   }
+    // });
+    console.log("Reconnect request", socket.id);
   });
 });
 
